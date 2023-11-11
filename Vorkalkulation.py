@@ -101,26 +101,14 @@ for prop in props_col2:
 df = pd.DataFrame([st.session_state.data])
 
 
-# Function to download DataFrame as Excel
-def download_excel(df):
+if st.button("Download Excel"):
     output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    df.to_excel(writer, sheet_name='Sheet1', index=False)
-    writer.save()
-    return output.getvalue()
+    with open("data.xlsx", "wb") as f:
+        df.to_excel(output, index=False)
+        f.write(output.read())
+    st.download_button("Download Excel File", output, key="download_excel", file_name="data.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
-# Function to download DataFrame as JSON
-def download_json(df):
-    return df.to_json(orient="records")
-
-
-# Provide download options
-if st.button("Download as Excel"):
-    excel_data = download_excel(df)
-    st.download_button("Download Excel File", excel_data, file_name="data.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
-if st.button("Download as JSON"):
-    json_data = download_json(df)
+if st.button("Download JSON"):
+    json_data = df.to_json(orient="records")
     st.download_button("Download JSON File", json_data, file_name="data.json", mime="application/json")
