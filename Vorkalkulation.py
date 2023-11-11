@@ -8,34 +8,30 @@ st.image(image, caption='Ata Logo', use_column_width=True)
 
 # Define data types and properties
 properties = {
-    'Kunde': str,
-    'Gegenstand': str,
-    'Zeichnungs- Nr.': str,
-    'Ausführen Nr.': str,
-    'Fertigung Gesamt': float,
-    'bis 90mm Einsatz': float,
-    'bis 90mm Fertig': float,
-    'bis 90mm Preis': float,
-    'ab 100mm Einsatz': float,
-    'ab 100mm Fertig': float,
-    'ab 100mm Preis': float,
-    'Profile Einsatz': float,
-    'Profile fertig': float,
-    'Profile Preis': float
+    'Brennen': float,
+    'Richten': float,
+    'Heften_Zussamenb_Verputzen': float,
+    'Anzeichnen': float,
+    'Schweißen': float,
 }
 
 units = {
-    'Fertigung Gesamt': 'kg',
-    'bis 90mm Einsatz': 'kg',
-    'bis 90mm Fertig': 'kg',
-    'bis 90mm Preis': '€',
-    'ab 100mm Einsatz': 'kg',
-    'ab 100mm Fertig': 'kg',
-    'ab 100mm Preis': '€',
-    'Profile Einsatz': 'kg',
-    'Profile fertig': 'kg',
-    'Profile Preis': '€'
+    'Brennen': 'min',
+    'Richten': 'min',
+    'Heften_Zussamenb_Verputzen': 'min',
+    'Anzeichnen': 'min',
+    'Schweißen': 'min',
 }
+
+field_mapping = {
+    'Brennen': 'Brennen',
+    'Richten': 'Richten',
+    'Heften_Zussamenb_Verputzen': 'Heften_Zussamenb_Verputzen',
+    'Anzeichnen': 'Anzeichnen',
+    'Schweißen': 'Schweißen'
+}
+
+st.title("Vorkalkulation")
 
 # Initialize session state for each property
 if "data" not in st.session_state:
@@ -57,26 +53,15 @@ for prop in props_col2:
     st.session_state.data[prop] = col2.text_input(prompt, value=st.session_state.data[prop]).strip()
 
 # Convert the user input data dictionary to a pandas DataFrame
-df = pd.DataFrame([st.session_state.data])
+df = pd.DataFrame(st.session_state.data, index=[0])  # Specify index to create a DataFrame with one row
 
-# Function to download DataFrame as Excel
-def download_excel(df):
+if st.button("Download Excel"):
     output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    df.to_excel(writer, sheet_name='Sheet1', index=False)
-    writer.save()
-    return output.getvalue()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Sheet1', index=False)
+    output.seek(0)
+    st.download_button("Download Excel File", output, key="download_excel", file_name="data.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-# Function to download DataFrame as JSON
-def download_json(df):
-    return df.to_json(orient="records")
-
-# Provide download options
-if st.button("Download as Excel"):
-    excel_data = download_excel(df)
-    st.download_button("Download Excel File", excel_data, file_name="data.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
-if st.button("Download as JSON"):
-    json_data = download_json(df)
+if st.button("Download JSON"):
+    json_data = df.to_json(orient="records")
     st.download_button("Download JSON File", json_data, file_name="data.json", mime="application/json")
